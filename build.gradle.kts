@@ -32,6 +32,10 @@ subprojects {
     apply(plugin = if (isApp) "com.android.application" else "com.android.library")
 
     fun queryConfigProperty(key: String): Any? {
+        // CI may supply a release version through -P without changing tracked files.
+        // Local properties remain the convenient path for developer-specific settings.
+        findProperty(key)?.let { return it }
+
         val localProperties = Properties()
         val localPropertiesFile = rootProject.file("local.properties")
         if (localPropertiesFile.exists()) {
@@ -42,12 +46,21 @@ subprojects {
         return localProperties.getProperty(key)
     }
 
+    val targetAbis = (queryConfigProperty("target.abis") as? String)
+        ?.split(',')
+        ?.map(String::trim)
+        ?.filter(String::isNotEmpty)
+        ?.takeIf { it.isNotEmpty() }
+        ?: listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+
     extensions.configure<BaseExtension> {
         buildFeatures.buildConfig = true
         defaultConfig {
             if (isApp) {
                 val customApplicationId = queryConfigProperty("custom.application.id") as? String?
-                applicationId = customApplicationId.takeIf { it?.isNotBlank() == true } ?: "com.github.metacubex.clash"
+                // A private default ID keeps this variant installable beside Clash,
+                // Clash Meta, and other downstream clients.
+                applicationId = customApplicationId.takeIf { it?.isNotBlank() == true } ?: "com.torin.tagent.proxy"
             }
 
             project.name.let { name ->
@@ -58,19 +71,23 @@ subprojects {
             minSdk = 21
             targetSdk = 35
 
-            versionName = "2.11.34"
-            versionCode = 211034
+            versionName = (queryConfigProperty("app.version.name") as? String)
+                ?.takeIf { it.isNotBlank() }
+                ?: "2.11.34"
+            versionCode = (queryConfigProperty("app.version.code") as? String)
+                ?.toIntOrNull()
+                ?: 211034
 
             resValue("string", "release_name", "v$versionName")
             resValue("integer", "release_code", "$versionCode")
 
             ndk {
-                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                abiFilters += targetAbis
             }
 
             externalNativeBuild {
                 cmake {
-                    abiFilters("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                    abiFilters(*targetAbis.toTypedArray())
                 }
             }
 
@@ -108,8 +125,8 @@ subprojects {
 
                 buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
 
-                resValue("string", "launch_name", "@string/launch_name_alpha")
-                resValue("string", "application_name", "@string/application_name_alpha")
+                resValue("string", "launch_name", "T-Agent Proxy Alpha")
+                resValue("string", "application_name", "T-Agent Proxy Alpha")
 
                 if (isApp && !removeSuffix) {
                     applicationIdSuffix = ".alpha"
@@ -125,8 +142,8 @@ subprojects {
 
                 buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
 
-                resValue("string", "launch_name", "@string/launch_name_meta")
-                resValue("string", "application_name", "@string/application_name_meta")
+                resValue("string", "launch_name", "T-Agent Proxy")
+                resValue("string", "application_name", "T-Agent Proxy")
 
                 if (isApp && !removeSuffix) {
                     applicationIdSuffix = ".meta"
@@ -151,7 +168,13 @@ subprojects {
                         keystore.inputStream().use(this::load)
                     }
 
-                    storeFile = rootProject.file("release.keystore")
+                    // Keep downstream signing material out of the repository and
+                    // avoid inheriting the upstream release certificate.
+                    val configuredStore = queryConfigProperty("custom.keystore.file") as? String
+                    storeFile = configuredStore
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let(rootProject::file)
+                        ?: rootProject.file("release.keystore")
                     storePassword = prop.getProperty("keystore.password")!!
                     keyAlias = prop.getProperty("key.alias")!!
                     keyPassword = prop.getProperty("key.password")!!
@@ -188,7 +211,7 @@ subprojects {
                     isEnable = true
                     isUniversalApk = true
                     reset()
-                    include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                    include(*targetAbis.toTypedArray())
                 }
             }
         }

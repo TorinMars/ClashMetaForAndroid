@@ -1,4 +1,6 @@
 .gradle
+.local/
+.kotlin/
 build/
 /app/foss/release
 /app/premium/release
