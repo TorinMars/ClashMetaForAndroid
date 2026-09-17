@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -40,13 +41,15 @@ func (c *probeConn) Read(p []byte) (int, error) {
 func (c *probeConn) Write(p []byte) (int, error) { return len(p), nil }
 func (c *probeConn) Close() error                { return nil }
 
-func inspectTLS(conn net.Conn) (net.Conn, string, bool) {
+func inspectTLS(conn net.Conn) (net.Conn, string, bool, string) {
 	p := &probeConn{Conn: conn}
 	host := ""
 	supported := false
+	detail := ""
 	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-	_ = tls.Server(p, &tls.Config{GetConfigForClient: func(hello *tls.ClientHelloInfo) (*tls.Config, error) {
+	err := tls.Server(p, &tls.Config{GetConfigForClient: func(hello *tls.ClientHelloInfo) (*tls.Config, error) {
 		host = hello.ServerName
+		detail = fmt.Sprintf("ClientHello ALPN=%v versions=%x", hello.SupportedProtos, hello.SupportedVersions)
 		supported = len(hello.SupportedProtos) == 0
 		for _, v := range hello.SupportedProtos {
 			if v == "http/1.1" || v == "h2" {
@@ -56,7 +59,10 @@ func inspectTLS(conn net.Conn) (net.Conn, string, bool) {
 		return nil, errors.New("inspection only")
 	}}).Handshake()
 	conn.SetReadDeadline(time.Time{})
-	return &readerConn{conn, io.MultiReader(bytes.NewReader(p.read.Bytes()), conn)}, host, supported
+	if detail == "" && err != nil {
+		detail = err.Error()
+	}
+	return &readerConn{conn, io.MultiReader(bytes.NewReader(p.read.Bytes()), conn)}, host, supported, detail
 }
 
 func inspectHTTP(conn net.Conn) (net.Conn, string) {

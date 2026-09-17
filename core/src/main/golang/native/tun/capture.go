@@ -25,6 +25,15 @@ func (t *captureTunnel) RuleProviders() map[string]P.RuleProvider { return t.pro
 func (t *captureTunnel) RuleUpdateCallback() *utils.Callback[P.RuleProvider] {
 	return t.providers.RuleUpdateCallback()
 }
+func (t *captureTunnel) HandleUDPPacket(packet C.UDPPacket, metadata *C.Metadata) {
+	capture.Default.ObserveUDP(int(metadata.DstPort), func() int {
+		if metadata.RawSrcAddr != nil && metadata.RawDstAddr != nil {
+			return app.QuerySocketUid(metadata.RawSrcAddr, metadata.RawDstAddr)
+		}
+		return -1
+	})
+	t.Tunnel.HandleUDPPacket(packet, metadata)
+}
 func (t *captureTunnel) HandleTCPConn(conn net.Conn, metadata *C.Metadata) {
 	if !capture.Default.Enabled() {
 		t.Tunnel.HandleTCPConn(conn, metadata)
@@ -64,7 +73,7 @@ func (t *captureTunnel) HandleTCPConn(conn net.Conn, metadata *C.Metadata) {
 		go t.Tunnel.HandleTCPConn(remote, &meta)
 		return local, nil
 	}
-	if !capture.Default.Handle(conn, uid, int(metadata.DstPort), dial, func(c net.Conn) { t.Tunnel.HandleTCPConn(c, metadata) }, ca.GetCertPool()) {
+	if !capture.Default.Handle(conn, uid, int(metadata.DstPort), dial, func(c net.Conn) { t.Tunnel.HandleTCPConn(c, metadata) }, ca.GetCertPool(), metadata.DstIP.String(), metadata.Host) {
 		t.Tunnel.HandleTCPConn(conn, metadata)
 	}
 }

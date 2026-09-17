@@ -58,8 +58,8 @@ subprojects {
             minSdk = 21
             targetSdk = 35
 
-            versionName = "2.11.34.capture-tls12"
-            versionCode = 211035
+            versionName = "2.11.34.capture-diag"
+            versionCode = 211036
 
             resValue("string", "release_name", "v$versionName")
             resValue("integer", "release_code", "$versionCode")

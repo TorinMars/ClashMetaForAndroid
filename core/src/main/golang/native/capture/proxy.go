@@ -21,14 +21,32 @@ type Dial func(context.Context, string) (net.Conn, error)
 
 // Handle returns false only when the original, unread connection should pass through.
 // Capturing supports HTTP/1.x on TCP 80 and HTTP/1.x + HTTP/2 over TLS on TCP 443.
-func (m *Manager) Handle(conn net.Conn, uid, port int, dial Dial, pass func(net.Conn), roots *x509.CertPool) bool {
-	cfg, gen, _ := m.snapshot()
-	if !cfg.Enabled || !cfg.MatchUID(uid) || (port != 80 && port != 443) || (port == 443 && !cfg.HTTPS) {
+func (m *Manager) Handle(conn net.Conn, uid, port int, dial Dial, pass func(net.Conn), roots *x509.CertPool, destination ...string) bool {
+	cfg, gen, epoch := m.snapshot()
+	if !cfg.Enabled {
+		return false
+	}
+	note := func(reason, host string) { m.note(gen, epoch, reason, uid, port, host) }
+	m.note(gen, epoch, "TCP 新连接", uid, port, strings.Join(destination, " "))
+	if uid < 0 {
+		note("应用 UID 未识别", "")
+	}
+	if !cfg.MatchUID(uid) {
+		note("应用白名单未匹配，已放行", "")
+		return false
+	}
+	if port != 80 && port != 443 {
+		note("不支持此 TCP 端口，已放行", "")
+		return false
+	}
+	if port == 443 && !cfg.HTTPS {
+		note("未开启 HTTPS 解密，已放行", "")
 		return false
 	}
 	select {
 	case m.slots <- struct{}{}:
 	default:
+		note("抓包并发已满，已放行", "")
 		return false
 	}
 	slotHeld := true
@@ -44,15 +62,26 @@ func (m *Manager) Handle(conn net.Conn, uid, port int, dial Dial, pass func(net.
 		return false
 	}
 	defer m.unregister(conn)
+	note("正在识别 HTTP/TLS", "")
 	var host string
 	client := conn
 	ok := true
 	if port == 443 {
-		client, host, ok = inspectTLS(conn)
+		var detail string
+		client, host, ok, detail = inspectTLS(conn)
+		m.note(gen, epoch, "TLS 探测结果", uid, port, host, detail)
 	} else {
 		client, host = inspectHTTP(conn)
 	}
 	if !ok || !cfg.MatchDomain(host) {
+		switch {
+		case !ok:
+			note("TLS 探测失败或 ALPN 不支持，已放行", "")
+		case host == "":
+			note("缺少 SNI/HTTP Host，已放行", "")
+		default:
+			note("域名白名单未匹配，已放行", host)
+		}
 		m.unregister(conn)
 		releaseSlot()
 		pass(client)
@@ -64,11 +93,13 @@ func (m *Manager) Handle(conn net.Conn, uid, port int, dial Dial, pass func(net.
 		authority := m.ca
 		m.mu.Unlock()
 		if authority == nil {
+			note("抓包 CA 未就绪", host)
 			return true
 		}
 		cert, err := authority.leaf(host)
 		if err != nil {
 			m.fail(err)
+			m.note(gen, epoch, "签发证书失败", uid, port, host, err.Error())
 			return true
 		}
 		tlsConfig := &tls.Config{Certificates: []tls.Certificate{cert}, NextProtos: []string{"h2", "http/1.1"}, MinVersion: tls.VersionTLS12}
@@ -85,9 +116,11 @@ func (m *Manager) Handle(conn net.Conn, uid, port int, dial Dial, pass func(net.
 				mode = "TLS 1.2"
 			}
 			m.fail(fmt.Errorf("HTTPS 握手失败 [%s · UID %d · %s]：%w", host, uid, mode, err))
+			m.note(gen, epoch, "TLS 握手失败", uid, port, host, err.Error())
 			return true
 		}
 		client = secure
+		m.note(gen, epoch, "TLS 握手成功，等待 HTTP 请求", uid, port, host, fmt.Sprintf("version=0x%04x ALPN=%s", secure.ConnectionState().Version, secure.ConnectionState().NegotiatedProtocol))
 	}
 	m.serve(client, cfg, gen, uid, port, host, dial, roots)
 	return true
@@ -180,11 +213,13 @@ func (m *Manager) serve(conn net.Conn, cfg Config, gen uint64, uid, port int, ho
 	defer transport.CloseIdleConnections()
 	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		_, _, epoch := m.snapshot()
+		m.note(gen, epoch, "收到 HTTP 请求", uid, port, host)
 		scheme := "http"
 		if port == 443 {
 			scheme = "https"
 		}
 		if req.Method == "CONNECT" || (req.ProtoMajor == 1 && req.URL.IsAbs()) || (port == 443 && hostname(req.Host) != hostname(host)) {
+			m.note(gen, epoch, "请求格式或 Host 不支持", uid, port, host)
 			http.Error(w, "Unsupported capture request", http.StatusMisdirectedRequest)
 			return
 		}
@@ -193,6 +228,11 @@ func (m *Manager) serve(conn net.Conn, cfg Config, gen uint64, uid, port int, ho
 			path = "/"
 		}
 		capture := cfg.MatchDomain(req.Host) && cfg.MatchPath(path)
+		if !capture {
+			m.note(gen, epoch, "请求域名/Path 未匹配，不保存记录", uid, port, host)
+		} else {
+			m.note(gen, epoch, "请求已匹配，等待响应完成", uid, port, host)
+		}
 		started := time.Now()
 		record := Record{Time: nowMillis(), UID: uid, Method: clip(req.Method, 32), URL: clip(scheme+"://"+req.Host+req.URL.RequestURI(), 2048), BodyEncoding: "base64"}
 		var requestSample, responseSample sample
@@ -205,6 +245,7 @@ func (m *Manager) serve(conn net.Conn, cfg Config, gen uint64, uid, port int, ho
 				record.RequestBody, record.RequestTruncated = requestSample.snapshot()
 				record.ResponseBody, record.ResponseTruncated = responseSample.snapshot()
 				m.add(record, gen, epoch)
+				m.note(gen, epoch, "请求记录已完成", uid, port, host, fmt.Sprintf("status=%d durationMs=%d", record.Status, record.Duration))
 			}
 		}()
 		out := req.Clone(req.Context())
@@ -225,6 +266,7 @@ func (m *Manager) serve(conn net.Conn, cfg Config, gen uint64, uid, port int, ho
 		if err != nil {
 			record.Status = 502
 			record.Error = clip(err.Error(), 512)
+			m.note(gen, epoch, "上游请求失败", uid, port, host, err.Error())
 			http.Error(w, "Capture upstream request failed", 502)
 			return
 		}

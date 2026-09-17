@@ -23,6 +23,7 @@ class CaptureDesign(context: Context) : Design<CaptureDesign.Request>(context) {
         object InstallCA : Request()
         object Refresh : Request()
         object Clear : Request()
+        object CopyDiagnostics : Request()
         data class Detail(val id: Long) : Request()
     }
     private val binding = DesignSettingsCommonBinding.inflate(context.layoutInflater, context.root, false)
@@ -39,6 +40,7 @@ class CaptureDesign(context: Context) : Design<CaptureDesign.Request>(context) {
     val paths = input(R.string.capture_paths, "/api/*\n/login")
     private val apps = TextView(context)
     private val status = TextView(context)
+    private val diagnostics = TextView(context).apply { setTextIsSelectable(true) }
     private val records = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
     private var signature = ""
 
@@ -64,6 +66,9 @@ class CaptureDesign(context: Context) : Design<CaptureDesign.Request>(context) {
         button(R.string.capture_export_ca, Request.ExportCA)
         button(R.string.capture_install_ca, Request.InstallCA)
         content.addView(status)
+        text(R.string.capture_diagnostics)
+        button(R.string.capture_copy_diagnostics, Request.CopyDiagnostics)
+        content.addView(diagnostics)
         button(R.string.capture_refresh, Request.Refresh)
         button(R.string.capture_clear, Request.Clear)
         content.addView(records)
@@ -80,6 +85,7 @@ class CaptureDesign(context: Context) : Design<CaptureDesign.Request>(context) {
     private fun button(res: Int, request: Request) { content.addView(Button(context).apply { setText(res); setOnClickListener { requests.trySend(request) } }) }
     fun setApps(count: Int) { apps.text = context.getString(R.string.capture_apps_count, count) }
     fun status(value: String) { status.text = value }
+    fun diagnostics(value: String) { diagnostics.text = value }
     fun showRecords(rows: List<Pair<Long, String>>) {
         val next = rows.toString()
         if (next == signature) return

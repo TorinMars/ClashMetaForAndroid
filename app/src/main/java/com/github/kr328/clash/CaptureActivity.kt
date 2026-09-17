@@ -1,6 +1,9 @@
 package com.github.kr328.clash
 
 import android.content.Intent
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import android.security.KeyChain
@@ -12,6 +15,7 @@ import androidx.appcompat.app.AlertDialog
 import com.github.kr328.clash.design.CaptureDesign
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.util.withClash
+import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import com.github.kr328.clash.common.util.ticker
@@ -80,6 +84,7 @@ class CaptureActivity : BaseActivity<CaptureDesign>() {
                                 CaptureDesign.Request.InstallCA -> installCA(page)
                                 CaptureDesign.Request.Refresh -> refresh(page)
                                 CaptureDesign.Request.Clear -> { command("clear"); refresh(page) }
+                                CaptureDesign.Request.CopyDiagnostics -> copyDiagnostics(page)
                                 is CaptureDesign.Request.Detail -> details(command("get", request.id.toString()))
                             }
                         }
@@ -101,6 +106,43 @@ class CaptureActivity : BaseActivity<CaptureDesign>() {
         page.showRecords(labels)
         val status = getString(if (result.optBoolean("enabled")) DesignR.string.capture_running else DesignR.string.capture_stopped)
         page.status("$status · ${rows.length()}/100\n${result.optString("lastError")}")
+        page.diagnostics(result.optString("diagnostics"))
+    }
+
+    private suspend fun copyDiagnostics(page: CaptureDesign) {
+        val report = command("diagnostics")
+        val store = ServiceStore(this)
+        val config = report.getJSONObject("config")
+        val packages = config.optJSONArray("packages").strings()
+        val apps = withContext(Dispatchers.IO) {
+            packages.joinToString("\n") { name ->
+                try {
+                    val info = packageManager.getPackageInfo(name, 0)
+                    val app = packageManager.getApplicationInfo(name, 0)
+                    "$name · ${app.loadLabel(packageManager)} · UID ${app.uid} · version ${info.versionName}"
+                } catch (e: Exception) { "$name · ${e.javaClass.simpleName}" }
+            }
+        }
+        val log = buildString {
+            appendLine("CMFA capture diagnostics")
+            appendLine("Copied: ${Date()} · ${java.util.TimeZone.getDefault().id}")
+            appendLine("App: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) · $packageName")
+            appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL} · Android ${Build.VERSION.RELEASE} / SDK ${Build.VERSION.SDK_INT}")
+            appendLine("Clash running: $clashRunning · VPN setting: ${uiStore.enableVpn}")
+            appendLine("Saved network settings (VPN restart required to apply):")
+            appendLine("systemProxy=${store.systemProxy} stack=${store.tunStackMode} ipv6=${store.allowIpv6} dnsHijacking=${store.dnsHijacking}")
+            appendLine("allowBypass=${store.allowBypass} bypassPrivateNetwork=${store.bypassPrivateNetwork}")
+            appendLine("accessControl=${store.accessControlMode} packages=${store.accessControlPackages.sorted()}")
+            appendLine("Selected capture apps:\n$apps")
+            appendLine("Capture config:\n${config.toString(2)}")
+            appendLine("Completed records: ${report.optInt("count")}")
+            appendLine("Last error: ${report.optString("lastError")}")
+            appendLine(report.optString("log"))
+            appendLine("Scope: new TUN TCP connections and TUN UDP packets while capture is enabled. Existing TCP connections and system HTTP proxy ingress are not counted. UDP 443 is not proof of QUIC. No HTTP bodies, headers, CA keys, or proxy credentials included.")
+        }
+        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+            .setPrimaryClip(ClipData.newPlainText("CMFA diagnostics", log))
+        page.showToast(DesignR.string.capture_diagnostics_copied, ToastDuration.Short)
     }
     private suspend fun chooseApps(page: CaptureDesign) {
         val apps = withContext(Dispatchers.IO) {

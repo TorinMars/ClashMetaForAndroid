@@ -34,17 +34,20 @@ type Record struct {
 }
 
 type Manager struct {
-	mu         sync.Mutex
-	dir        string
-	config     Config
-	ca         *authority
-	records    []Record
-	next       int64
-	generation uint64
-	epoch      uint64
-	active     map[net.Conn]struct{}
-	slots      chan struct{}
-	lastError  string
+	mu               sync.Mutex
+	dir              string
+	config           Config
+	ca               *authority
+	records          []Record
+	next             int64
+	generation       uint64
+	epoch            uint64
+	active           map[net.Conn]struct{}
+	slots            chan struct{}
+	lastError        string
+	diagnosticCounts map[string]uint64
+	diagnosticEvents []string
+	lastUDPSample    time.Time
 }
 
 var Default = New("")
@@ -94,6 +97,7 @@ func (m *Manager) update(c Config) error {
 	m.config = c
 	m.generation++
 	m.lastError = ""
+	m.resetDiagnosticsLocked()
 	conns := m.connectionsLocked()
 	m.mu.Unlock()
 	for _, conn := range conns {
@@ -187,8 +191,11 @@ func (m *Manager) command(command, payload string) (any, error) {
 	switch command {
 	case "state":
 		return map[string]any{"config": m.config, "count": len(m.records), "lastError": m.lastError}, nil
+	case "diagnostics":
+		return map[string]any{"config": m.config, "lastError": m.lastError, "count": len(m.records), "log": m.diagnosticsLocked(200)}, nil
 	case "clear":
 		m.records = nil
+		m.resetDiagnosticsLocked()
 		m.epoch++
 		m.lastError = ""
 		return map[string]bool{"ok": true}, nil
@@ -211,7 +218,7 @@ func (m *Manager) command(command, payload string) (any, error) {
 			r.ResponseBody = ""
 			rows = append(rows, r)
 		}
-		return map[string]any{"records": rows, "lastError": m.lastError, "enabled": m.config.Enabled}, nil
+		return map[string]any{"records": rows, "lastError": m.lastError, "enabled": m.config.Enabled, "diagnostics": m.diagnosticsLocked(20)}, nil
 	case "get":
 		id, err := strconv.ParseInt(payload, 10, 64)
 		if err != nil {
