@@ -354,7 +354,7 @@ func TestHTTP2AndTrailers(t *testing.T) {
 	upstream.StartTLS()
 	defer upstream.Close()
 	m := New(t.TempDir())
-	if err := m.update(Config{Enabled: true, HTTPS: true, Domains: []string{"example.com"}, Paths: []string{"/allowed"}}); err != nil {
+	if err := m.update(Config{Enabled: true, HTTPS: true, Domains: []string{"example.com"}, Paths: []string{"re:^/allowed$"}}); err != nil {
 		t.Fatal(err)
 	}
 	roots := x509.NewCertPool()
@@ -379,7 +379,7 @@ func TestHTTP2AndTrailers(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, p := range []string{"/skip", "/allowed"} {
+	for _, p := range []string{"/skip?next=/allowed", "/%61llowed", "/allowed"} {
 		req, _ := http.NewRequest("GET", "https://example.com"+p, nil)
 		resp, err := c.RoundTrip(req)
 		if err != nil {

@@ -1,8 +1,8 @@
 # 抓包测试版 APK
 
-[下载 ARM64 APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-diag-arm64-v8a.apk)
+[下载 ARM64 APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-regex-arm64-v8a.apk)
 
-版本：`2.11.34.capture-diag.Alpha`（211036）。新增“一键复制诊断日志”，覆盖安装旧测试版可保留 CA。保存抓包设置后重启 KIM、复现问题，再回抓包页点击“一键复制诊断日志”并粘贴反馈；复制前不要清空记录或再次保存设置。保留 TLS 1.2 兼容模式。
+版本：`2.11.34.capture-regex.Alpha`（211037）。新增 Path 正则匹配：在 Path 白名单填写 `re:(?i)scan` 即可记录路径中包含 scan 的请求（忽略大小写，不匹配查询参数）。每行一项，可与精确路径和末尾 `*` 混用，满足任意一项即可。保存并应用后生效；无效正则会报错并保留旧配置。保留一键复制诊断日志和 TLS 1.2 兼容模式，覆盖安装旧测试版可保留 CA。
 
 适用于 ARM64 Android 手机，最低 Android 5.0。安装后进入“设置 → HTTP / HTTPS 抓包”。
 

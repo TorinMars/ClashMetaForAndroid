@@ -5,17 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"regexp"
 	"strings"
 )
 
 type Config struct {
-	Enabled   bool     `json:"enabled"`
-	HTTPS     bool     `json:"https"`
-	TLS12Only bool     `json:"tls12Only"`
-	Domains   []string `json:"domains"`
-	Paths     []string `json:"paths"`
-	Packages  []string `json:"packages"`
-	UIDs      []int    `json:"uids"`
+	Enabled     bool     `json:"enabled"`
+	HTTPS       bool     `json:"https"`
+	TLS12Only   bool     `json:"tls12Only"`
+	Domains     []string `json:"domains"`
+	Paths       []string `json:"paths"`
+	Packages    []string `json:"packages"`
+	UIDs        []int    `json:"uids"`
+	pathRegexps map[string]*regexp.Regexp
 }
 
 func (c *Config) Validate() error {
@@ -40,10 +42,24 @@ func (c *Config) Validate() error {
 		}
 		c.Domains[i] = s
 	}
+	c.pathRegexps = make(map[string]*regexp.Regexp)
 	for i, s := range c.Paths {
 		s = strings.TrimSpace(s)
+		if strings.HasPrefix(s, "re:") {
+			pattern := strings.TrimPrefix(s, "re:")
+			if pattern == "" || len(s) > 2048 || strings.ContainsAny(s, "\r\n") {
+				return fmt.Errorf("无效 Path 正则：%s", s)
+			}
+			re, err := regexp.Compile(pattern)
+			if err != nil {
+				return fmt.Errorf("无效 Path 正则 %s：%w", s, err)
+			}
+			c.pathRegexps[s] = re
+			c.Paths[i] = s
+			continue
+		}
 		if !strings.HasPrefix(s, "/") || len(s) > 2048 || strings.ContainsAny(s, "?#\r\n") || strings.Contains(strings.TrimSuffix(s, "*"), "*") {
-			return fmt.Errorf("无效 path（支持末尾 *）：%s", s)
+			return fmt.Errorf("无效 path（支持末尾 * 或 re:正则）：%s", s)
 		}
 		c.Paths[i] = s
 	}
@@ -87,6 +103,12 @@ func (c Config) MatchPath(path string) bool {
 		return true
 	}
 	for _, p := range c.Paths {
+		if strings.HasPrefix(p, "re:") {
+			if re := c.pathRegexps[p]; re != nil && re.MatchString(path) {
+				return true
+			}
+			continue
+		}
 		if p == path || strings.HasSuffix(p, "*") && strings.HasPrefix(path, strings.TrimSuffix(p, "*")) {
 			return true
 		}

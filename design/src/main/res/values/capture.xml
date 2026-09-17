@@ -8,9 +8,9 @@
     <string name="capture_title">HTTP / HTTPS capture</string>
     <string name="capture_enable">Enable capture</string>
     <string name="capture_https">Decrypt HTTPS (requires trusting the capture CA)</string>
-    <string name="capture_explanation">Capture only matching traffic in VPN mode. Empty lists allow all; entries within a list use OR, different lists use AND. Domains support *.example.com (subdomains only); paths are case-sensitive, exclude the query, and support a trailing *. Unmatched traffic is forwarded. Rules apply to new connections; saving closes active inspected connections.</string>
+    <string name="capture_explanation">Capture only matching traffic in VPN mode. Empty lists allow all; entries within a list use OR, different lists use AND. Domains support *.example.com (subdomains only); paths are case-sensitive, exclude the query, and support a trailing * or re:regex (e.g. re:(?i)scan matches paths containing scan, ignoring case). Unmatched traffic is forwarded. Rules apply to new connections; saving closes active inspected connections.</string>
     <string name="capture_domains">Domain allowlist (one per line)</string>
-    <string name="capture_paths">Path allowlist (one per line)</string>
+    <string name="capture_paths">Path allowlist (one per line; prefix regex with re:)</string>
     <string name="capture_apps">Choose application allowlist</string>
     <string name="capture_apps_count">Selected applications: %1$d (0 = all; shared UIDs share capture scope)</string>
     <string name="capture_all_apps">All applications</string>
