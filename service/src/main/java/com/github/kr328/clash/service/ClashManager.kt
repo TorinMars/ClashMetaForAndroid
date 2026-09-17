@@ -15,6 +15,10 @@ import kotlinx.coroutines.channels.ReceiveChannel
 
 class ClashManager(private val context: Context) : IClashManager,
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
+    override fun capture(command: String, payload: String): String {
+        return CaptureController.command(context, command, payload)
+    }
+
     private val store = ServiceStore(context)
     private var logReceiver: ReceiveChannel<LogMessage>? = null
 

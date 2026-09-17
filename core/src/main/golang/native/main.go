@@ -8,6 +8,8 @@ package main
 import "C"
 
 import (
+	"cfa/native/capture"
+	"path/filepath"
 	"runtime"
 	"runtime/debug"
 
@@ -30,6 +32,7 @@ func coreInit(home, versionName, gitVersion C.c_string, sdkVersion C.int) {
 	s := int(sdkVersion)
 
 	delegate.Init(h, v, g, s)
+	capture.Default.Init(filepath.Join(h, "capture"))
 
 	reset()
 }

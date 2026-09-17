@@ -46,6 +46,7 @@ class AppListCacheModule(service: Service) : Module<Unit>(service) {
             reload()
 
             packageChanged.receive()
+            com.github.kr328.clash.service.CaptureController.revalidate(service)
 
             delay(TimeUnit.SECONDS.toMillis(10))
         }

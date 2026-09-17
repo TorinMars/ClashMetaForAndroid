@@ -45,6 +45,7 @@
             android:name="releaseCode"
             android:value="@integer/release_code" />
 
+        <activity android:name=".CaptureActivity" android:exported="false" android:label="@string/capture_title" />
         <activity
             android:name=".MainActivity"
             android:configChanges="uiMode"

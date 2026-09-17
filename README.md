@@ -6,6 +6,10 @@ A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Me
 
 Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
 
+Local HTTP/HTTPS capture (including HTTPS HTTP/2), with application, domain and path allowlists. See [capture setup and limitations](CAPTURE.md).
+
+[Download the ARM64 capture test APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-arm64-v8a.apk) · [Build details and checksum](downloads/README.md)
+
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
      height="80">](https://f-droid.org/packages/com.github.metacubex.clash.meta/)

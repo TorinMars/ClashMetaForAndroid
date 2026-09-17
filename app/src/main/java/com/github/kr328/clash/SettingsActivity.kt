@@ -18,6 +18,8 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
                 }
                 design.requests.onReceive {
                     when (it) {
+                        SettingsDesign.Request.StartCapture ->
+                            startActivity(CaptureActivity::class.intent)
                         SettingsDesign.Request.StartApp ->
                             startActivity(AppSettingsActivity::class.intent)
                         SettingsDesign.Request.StartNetwork ->

@@ -12,6 +12,7 @@ import (
 	"golang.org/x/sync/semaphore"
 
 	"cfa/native/app"
+	"cfa/native/capture"
 	"cfa/native/tun"
 )
 
@@ -99,6 +100,7 @@ func startTun(fd C.int, stack, gateway, portal, dns C.c_string, callback unsafe.
 
 //export stopTun
 func stopTun() {
+	capture.Default.Stop()
 	rTunLock.Lock()
 	defer rTunLock.Unlock()
 

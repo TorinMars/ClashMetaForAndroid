@@ -10,6 +10,7 @@ import java.io.File
 
 @Keep
 object Bridge {
+    external fun nativeCapture(command: String, payload: String): String
     external fun nativeReset()
     external fun nativeForceGc()
     external fun nativeSuspend(suspend: Boolean)

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="capture_title">HTTP / HTTPS capture</string>
+    <string name="capture_enable">Enable capture</string>
+    <string name="capture_https">Decrypt HTTPS (requires trusting the capture CA)</string>
+    <string name="capture_explanation">Capture only matching traffic in VPN mode. Empty lists allow all; entries within a list use OR, different lists use AND. Domains support *.example.com (subdomains only); paths are case-sensitive, exclude the query, and support a trailing *. Unmatched traffic is forwarded. Rules apply to new connections; saving closes active inspected connections.</string>
+    <string name="capture_domains">Domain allowlist (one per line)</string>
+    <string name="capture_paths">Path allowlist (one per line)</string>
+    <string name="capture_apps">Choose application allowlist</string>
+    <string name="capture_apps_count">Selected applications: %1$d (0 = all; shared UIDs share capture scope)</string>
+    <string name="capture_all_apps">All applications</string>
+    <string name="capture_save">Save and apply</string>
+    <string name="capture_stop">Stop capture</string>
+    <string name="capture_tls_help">HTTPS paths are filtered after TLS decryption. Android 7+ apps may not trust user CAs; certificate pinning and mutual TLS are unsupported. Captures HTTP/1.x and HTTPS HTTP/2 on TCP 80/443; HTTP/3 (QUIC) and other ports pass through without recording. WebSocket records the upgrade only. Keep 100 in-memory records, with 8 KiB per body; exports may contain credentials. Capture does not resume after VPN/process restart.</string>
+    <string name="capture_export_ca">Export public CA certificate</string>
+    <string name="capture_install_ca">Install CA / instructions</string>
+    <string name="capture_ca_manual">First export the CA certificate. In system Security settings, choose Encryption and credentials → Install a certificate → CA certificate, then select the exported file. Menu names vary by device. The target app must trust this CA. Remove the CA from system settings when it is no longer needed.</string>
+    <string name="capture_security_settings">Open security settings</string>
+    <string name="capture_refresh">Refresh requests</string>
+    <string name="capture_clear">Clear captured records</string>
+    <string name="capture_empty">No completed requests. Start the VPN, apply capture settings, then make a new request from a matching app.</string>
+    <string name="capture_need_vpn">Start Clash in VPN mode before enabling capture.</string>
+    <string name="capture_saved">Capture settings applied</string>
+    <string name="capture_running">Capturing</string>
+    <string name="capture_stopped">Capture stopped</string>
+    <string name="capture_detail">Request / response details</string>
+    <string name="capture_export_record">Export JSON</string>
+</resources>
