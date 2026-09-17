@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="capture_tls12_only">HTTPS 兼容模式（仅 TLS 1.2）</string>
+    <string name="capture_tls12_help">遇到 HTTPS 握手失败时可开启后保存，并重启目标应用再试。仅影响目标应用与抓包代理之间的连接；无需重新安装 CA。关闭后恢复自动协商。</string>
     <string name="capture_title">HTTP / HTTPS 抓包</string>
     <string name="capture_enable">启用抓包</string>
     <string name="capture_https">解密 HTTPS（目标应用须信任抓包 CA）</string>

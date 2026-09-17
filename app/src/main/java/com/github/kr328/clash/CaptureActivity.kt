@@ -41,6 +41,7 @@ class CaptureActivity : BaseActivity<CaptureDesign>() {
         val state = command("state").getJSONObject("config")
         page.enabled.isChecked = state.optBoolean("enabled")
         page.https.isChecked = state.optBoolean("https")
+        page.tls12Only.isChecked = state.optBoolean("tls12Only")
         page.domains.setText(state.optJSONArray("domains").strings().joinToString("\n"))
         page.paths.setText(state.optJSONArray("paths").strings().joinToString("\n"))
         selected.addAll(state.optJSONArray("packages").strings())
@@ -61,6 +62,7 @@ class CaptureActivity : BaseActivity<CaptureDesign>() {
                                     }
                                     val config = JSONObject().put("enabled", page.enabled.isChecked)
                                         .put("https", page.https.isChecked)
+                                        .put("tls12Only", page.tls12Only.isChecked)
                                         .put("domains", JSONArray(lines(page.domains.text)))
                                         .put("paths", JSONArray(lines(page.paths.text)))
                                         .put("packages", JSONArray(selected.sorted()))

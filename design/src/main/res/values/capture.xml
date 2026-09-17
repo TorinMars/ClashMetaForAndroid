@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="capture_tls12_only">HTTPS compatibility mode (TLS 1.2 only)</string>
+    <string name="capture_tls12_help">For HTTPS handshake failures, enable this option, save, and restart the target app. Only affects connections from the target app to the capture proxy. No CA reinstall needed. Disable to restore automatic negotiation.</string>
     <string name="capture_title">HTTP / HTTPS capture</string>
     <string name="capture_enable">Enable capture</string>
     <string name="capture_https">Decrypt HTTPS (requires trusting the capture CA)</string>

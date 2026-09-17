@@ -20,6 +20,8 @@
 
 ## 支持范围与限制
 
+若目标应用遇到 TLS 握手失败，可开启“HTTPS 兼容模式（仅 TLS 1.2）”，保存并应用，再重启目标应用测试。该开关仅限制应用到抓包代理的 TLS 版本，不改变上游 TLS 校验或现有 CA；关闭后恢复自动协商。错误信息包含目标域名、UID 和当前模式。此模式用于兼容性排查，尚未确认能解决 KIM / Android 17 上的问题。
+
 支持 TCP 80 上的 HTTP/1.x，以及 TCP 443 上的 HTTPS HTTP/1.x、HTTP/2。HTTP/2 可保留 trailers（例如 gRPC 状态），但不解释 protobuf 数据。WebSocket 仅记录升级握手，不解析帧。
 
 HTTP/3/QUIC、其他端口、非 HTTP ALPN 和没有 SNI 的 HTTPS 直接放行，不记录。若目标应用优先使用 QUIC，需要在受测应用中关闭 HTTP/3 后重新建立连接。

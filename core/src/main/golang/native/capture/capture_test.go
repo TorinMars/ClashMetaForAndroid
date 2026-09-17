@@ -189,6 +189,46 @@ func TestHTTPAndTLSCapture(t *testing.T) {
 		})
 	}
 }
+func TestTLSCompatibilityNegotiation(t *testing.T) {
+	for _, only12 := range []bool{false, true} {
+		name := "auto"
+		want := uint16(tls.VersionTLS13)
+		if only12 {
+			name, want = "tls12", tls.VersionTLS12
+		}
+		t.Run(name, func(t *testing.T) {
+			m := New(t.TempDir())
+			if err := m.update(Config{Enabled: true, HTTPS: true, TLS12Only: only12}); err != nil {
+				t.Fatal(err)
+			}
+			// The choice must survive a restart without enabling capture automatically.
+			reloaded := New(m.dir)
+			reloaded.Init(m.dir)
+			cfg, _, _ := reloaded.snapshot()
+			if cfg.TLS12Only != only12 || cfg.Enabled {
+				t.Fatalf("unexpected saved config: %+v", cfg)
+			}
+			client, inbound := net.Pipe()
+			done := make(chan struct{})
+			go func() {
+				defer close(done)
+				m.Handle(inbound, 42, 443, nil, func(net.Conn) { t.Error("unexpected bypass") }, nil)
+			}()
+			roots := x509.NewCertPool()
+			roots.AddCert(m.ca.cert)
+			secure := tls.Client(client, &tls.Config{RootCAs: roots, ServerName: "example.com", NextProtos: []string{"http/1.1"}, MinVersion: tls.VersionTLS12})
+			secure.SetDeadline(time.Now().Add(5 * time.Second))
+			err := secure.Handshake()
+			got := secure.ConnectionState().Version
+			client.Close()
+			<-done
+			if err != nil || got != want {
+				t.Fatalf("version=%x want=%x err=%v", got, want, err)
+			}
+		})
+	}
+}
+
 func TestTLSBypassPreservesClientHello(t *testing.T) {
 	m := New(t.TempDir())
 	if err := m.update(Config{Enabled: true, HTTPS: true, Domains: []string{"allowed.test"}}); err != nil {

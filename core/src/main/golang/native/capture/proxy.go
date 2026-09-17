@@ -71,12 +71,20 @@ func (m *Manager) Handle(conn net.Conn, uid, port int, dial Dial, pass func(net.
 			m.fail(err)
 			return true
 		}
-		secure := tls.Server(client, &tls.Config{Certificates: []tls.Certificate{cert}, NextProtos: []string{"h2", "http/1.1"}, MinVersion: tls.VersionTLS12})
+		tlsConfig := &tls.Config{Certificates: []tls.Certificate{cert}, NextProtos: []string{"h2", "http/1.1"}, MinVersion: tls.VersionTLS12}
+		if cfg.TLS12Only {
+			tlsConfig.MaxVersion = tls.VersionTLS12
+		}
+		secure := tls.Server(client, tlsConfig)
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		err = secure.HandshakeContext(ctx)
 		cancel()
 		if err != nil {
-			m.fail(fmt.Errorf("HTTPS 握手失败（检查 CA 信任或证书固定）：%w", err))
+			mode := "自动 TLS"
+			if cfg.TLS12Only {
+				mode = "TLS 1.2"
+			}
+			m.fail(fmt.Errorf("HTTPS 握手失败 [%s · UID %d · %s]：%w", host, uid, mode, err))
 			return true
 		}
 		client = secure

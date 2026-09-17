@@ -1,6 +1,8 @@
 # 抓包测试版 APK
 
-[下载 ARM64 APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-arm64-v8a.apk)
+[下载 ARM64 APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-tls12-arm64-v8a.apk)
+
+版本：`2.11.34.capture-tls12.Alpha`（211035）。新增“HTTPS 兼容模式（仅 TLS 1.2）”，用于排查 KIM / Android 17 的握手失败，实际效果待真机确认。覆盖安装旧抓包测试版可保留现有 CA；开启兼容模式后保存并应用，再重启 KIM 测试。
 
 适用于 ARM64 Android 手机，最低 Android 5.0。安装后进入“设置 → HTTP / HTTPS 抓包”。
 

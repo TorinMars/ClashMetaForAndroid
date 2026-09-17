@@ -34,6 +34,7 @@ class CaptureDesign(context: Context) : Design<CaptureDesign.Request>(context) {
     }
     val enabled = SwitchMaterial(context).apply { setText(R.string.capture_enable) }
     val https = SwitchMaterial(context).apply { setText(R.string.capture_https) }
+    val tls12Only = SwitchMaterial(context).apply { setText(R.string.capture_tls12_only) }
     val domains = input(R.string.capture_domains, "api.example.com\n*.example.org")
     val paths = input(R.string.capture_paths, "/api/*\n/login")
     private val apps = TextView(context)
@@ -49,6 +50,8 @@ class CaptureDesign(context: Context) : Design<CaptureDesign.Request>(context) {
         text(R.string.capture_explanation)
         content.addView(enabled)
         content.addView(https)
+        content.addView(tls12Only)
+        text(R.string.capture_tls12_help)
         text(R.string.capture_domains)
         content.addView(domains)
         text(R.string.capture_paths)

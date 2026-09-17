@@ -9,12 +9,13 @@ import (
 )
 
 type Config struct {
-	Enabled  bool     `json:"enabled"`
-	HTTPS    bool     `json:"https"`
-	Domains  []string `json:"domains"`
-	Paths    []string `json:"paths"`
-	Packages []string `json:"packages"`
-	UIDs     []int    `json:"uids"`
+	Enabled   bool     `json:"enabled"`
+	HTTPS     bool     `json:"https"`
+	TLS12Only bool     `json:"tls12Only"`
+	Domains   []string `json:"domains"`
+	Paths     []string `json:"paths"`
+	Packages  []string `json:"packages"`
+	UIDs      []int    `json:"uids"`
 }
 
 func (c *Config) Validate() error {
