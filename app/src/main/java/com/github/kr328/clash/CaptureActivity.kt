@@ -86,6 +86,7 @@ class CaptureActivity : BaseActivity<CaptureDesign>() {
                                 CaptureDesign.Request.Clear -> { command("clear"); refresh(page) }
                                 CaptureDesign.Request.CopyDiagnostics -> copyDiagnostics(page)
                                 is CaptureDesign.Request.Detail -> details(command("get", request.id.toString()))
+                                is CaptureDesign.Request.Menu -> showRecordMenu(request.id, page)
                             }
                         }
                     }
@@ -107,6 +108,21 @@ class CaptureActivity : BaseActivity<CaptureDesign>() {
         val status = getString(if (result.optBoolean("enabled")) DesignR.string.capture_running else DesignR.string.capture_stopped)
         page.status("$status · ${rows.length()}/100\n${result.optString("lastError")}")
         page.diagnostics(result.optString("diagnostics"))
+    }
+
+    private fun showRecordMenu(id: Long, page: CaptureDesign) {
+        AlertDialog.Builder(this).setTitle(DesignR.string.capture_detail)
+            .setItems(arrayOf(getString(DesignR.string.capture_copy_curl))) { _, _ ->
+                launch {
+                    try {
+                        val value = command("curl", id.toString()).getString("curl")
+                        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                            .setPrimaryClip(ClipData.newPlainText("cURL", value))
+                        page.showToast(DesignR.string.capture_curl_copied, ToastDuration.Short)
+                    } catch (e: CancellationException) { throw e
+                    } catch (e: Exception) { page.showToast(e.message ?: e.toString(), ToastDuration.Long) }
+                }
+            }.show()
     }
 
     private suspend fun copyDiagnostics(page: CaptureDesign) {

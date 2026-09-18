@@ -25,6 +25,7 @@ class CaptureDesign(context: Context) : Design<CaptureDesign.Request>(context) {
         object Clear : Request()
         object CopyDiagnostics : Request()
         data class Detail(val id: Long) : Request()
+        data class Menu(val id: Long) : Request()
     }
     private val binding = DesignSettingsCommonBinding.inflate(context.layoutInflater, context.root, false)
     override val root: View get() = binding.root
@@ -98,6 +99,7 @@ class CaptureDesign(context: Context) : Design<CaptureDesign.Request>(context) {
                 isAllCaps = false
                 gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
                 setOnClickListener { requests.trySend(Request.Detail(id)) }
+                setOnLongClickListener { requests.trySend(Request.Menu(id)); true }
             })
         }
     }

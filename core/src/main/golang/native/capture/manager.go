@@ -219,13 +219,17 @@ func (m *Manager) command(command, payload string) (any, error) {
 			rows = append(rows, r)
 		}
 		return map[string]any{"records": rows, "lastError": m.lastError, "enabled": m.config.Enabled, "diagnostics": m.diagnosticsLocked(20)}, nil
-	case "get":
+	case "get", "curl":
 		id, err := strconv.ParseInt(payload, 10, 64)
 		if err != nil {
 			return nil, err
 		}
 		for _, r := range m.records {
 			if r.ID == id {
+				if command == "curl" {
+					value, err := curlCommand(r)
+					return map[string]string{"curl": value}, err
+				}
 				return r, nil
 			}
 		}

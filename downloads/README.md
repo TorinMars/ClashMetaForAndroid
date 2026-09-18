@@ -1,8 +1,8 @@
 # 抓包测试版 APK
 
-[下载 ARM64 APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-regex-arm64-v8a.apk)
+[下载 ARM64 APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-curl-arm64-v8a.apk)
 
-版本：`2.11.34.capture-regex.Alpha`（211037）。新增 Path 正则匹配：在 Path 白名单填写 `re:(?i)scan` 即可记录路径中包含 scan 的请求（忽略大小写，不匹配查询参数）。每行一项，可与精确路径和末尾 `*` 混用，满足任意一项即可。保存并应用后生效；无效正则会报错并保留旧配置。保留一键复制诊断日志和 TLS 1.2 兼容模式，覆盖安装旧测试版可保留 CA。
+版本：`2.11.34.capture-curl.Alpha`（211038）。长按抓包记录弹出菜单，选择“复制为 cURL”，成功后显示 Toast。命令适用于 macOS/Linux 等 POSIX shell，包含方法、URL、请求头和已保存的正文；二进制正文用 base64 管道传入。请求被截断时提示无法生成完整命令。保留 Path 正则、诊断日志复制和 TLS 1.2 兼容模式，覆盖安装旧测试版可保留 CA。
 
 适用于 ARM64 Android 手机，最低 Android 5.0。安装后进入“设置 → HTTP / HTTPS 抓包”。
 

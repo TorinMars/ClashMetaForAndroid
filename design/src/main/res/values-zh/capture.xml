@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="capture_copy_curl">复制为 cURL</string>
+    <string name="capture_curl_copied">cURL 已复制</string>
     <string name="capture_diagnostics_copied">诊断日志已复制，可直接粘贴发送</string>
     <string name="capture_diagnostics">抓包诊断（保存设置或清空记录会重置日志）</string>
     <string name="capture_copy_diagnostics">一键复制诊断日志</string>

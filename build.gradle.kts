@@ -58,8 +58,8 @@ subprojects {
             minSdk = 21
             targetSdk = 35
 
-            versionName = "2.11.34.capture-regex"
-            versionCode = 211037
+            versionName = "2.11.34.capture-curl"
+            versionCode = 211038
 
             resValue("string", "release_name", "v$versionName")
             resValue("integer", "release_code", "$versionCode")

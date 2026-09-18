@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="capture_copy_curl">Copy as cURL</string>
+    <string name="capture_curl_copied">cURL copied</string>
     <string name="capture_diagnostics_copied">Diagnostic log copied. Paste it to share.</string>
     <string name="capture_diagnostics">Capture diagnostics (reset on save or clear)</string>
     <string name="capture_copy_diagnostics">Copy diagnostic log</string>
