@@ -2,13 +2,19 @@
 
 A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta) for Android
 
+### APK 下载
+
+[下载最新版 APK（ARM64 · 211040）](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-routing-arm64-v8a.apk)
+
+版本：`2.11.34.capture-routing.Alpha`。支持抓包名单与分应用代理名单分离，可覆盖安装此前的抓包测试版，保留 CA 和配置。
+
+[安装说明与校验值](downloads/README.md) · [抓包使用说明](CAPTURE.md)
+
 ### Feature
 
 Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
 
 Local HTTP/HTTPS capture (including HTTPS HTTP/2), with application, domain and path allowlists. See [capture setup and limitations](CAPTURE.md).
-
-[Download the ARM64 capture test APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-routing-arm64-v8a.apk) · [Build details and checksum](downloads/README.md)
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
