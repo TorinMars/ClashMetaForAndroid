@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="access_control_import">导入分应用路由（剪贴板）</string>
+    <string name="access_control_export">导出分应用路由（复制）</string>
+    <string name="access_control_exported">应用名单和路由模式已复制</string>
+    <string name="access_control_imported">已恢复 %1$d 个应用及路由设置，%2$d 个未安装应用的包名已保留。返回上一页后保存并生效。</string>
+    <string name="access_control_import_failed">导入失败，原配置未改动：%1$s</string>
+</resources>

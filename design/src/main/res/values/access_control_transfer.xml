@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="access_control_import">Import app routing (clipboard)</string>
+    <string name="access_control_export">Export app routing (copy)</string>
+    <string name="access_control_exported">App list and routing mode copied</string>
+    <string name="access_control_imported">Restored %1$d apps and routing settings; kept %2$d uninstalled package names. Go back to save and apply.</string>
+    <string name="access_control_import_failed">Import failed; previous settings kept: %1$s</string>
+</resources>

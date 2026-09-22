@@ -1,8 +1,8 @@
 # 抓包测试版 APK
 
-[下载 ARM64 APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-curl-arm64-v8a.apk)
+[下载 ARM64 APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-routing-transfer-arm64-v8a.apk)
 
-版本：`2.11.34.capture-curl.Alpha`（211038）。长按抓包记录弹出菜单，选择“复制为 cURL”，成功后显示 Toast。命令适用于 macOS/Linux 等 POSIX shell，包含方法、URL、请求头和已保存的正文；二进制正文用 base64 管道传入。请求被截断时提示无法生成完整命令。保留 Path 正则、诊断日志复制和 TLS 1.2 兼容模式，覆盖安装旧测试版可保留 CA。
+版本：`2.11.34.routing-transfer.Alpha`（211039）。在“设置 → 网络 → 访问控制应用包列表”的右上角菜单加入醒目的分应用路由导入、导出入口。导出复制 JSON（路由模式与包名），导入恢复名单与模式；兼容旧版每行一个包名的文本。未安装应用的包名保留，已选系统应用不再被隐藏；无效数据不会清空原配置。操作后显示提示，返回上一页保存并按需重启 VPN。保留抓包、Path 正则、复制 cURL 和诊断功能，覆盖安装旧测试版可保留 CA。
 
 适用于 ARM64 Android 手机，最低 Android 5.0。安装后进入“设置 → HTTP / HTTPS 抓包”。
 

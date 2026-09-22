@@ -43,14 +43,10 @@
         </menu>
     </item>
 
-    <item android:title="@string/external">
-        <menu>
             <item
                 android:id="@+id/import_from_clipboard"
-                android:title="@string/import_from_clipboard" />
+                android:title="@string/access_control_import" />
             <item
                 android:id="@+id/export_to_clipboard"
-                android:title="@string/export_to_clipboard" />
-        </menu>
-    </item>
+                android:title="@string/access_control_export" />
 </menu>

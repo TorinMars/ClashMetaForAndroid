@@ -13,6 +13,10 @@ import com.github.kr328.clash.design.util.toAppInfo
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
+import com.github.kr328.clash.util.AccessControlTransfer
+import com.github.kr328.clash.design.ui.ToastDuration
+import kotlinx.coroutines.CancellationException
+import com.github.kr328.clash.design.R as DesignR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -22,6 +26,7 @@ import kotlinx.coroutines.withContext
 class AccessControlActivity : BaseActivity<AccessControlDesign>() {
     override suspend fun main() {
         val service = ServiceStore(this)
+        var mode = service.accessControlMode
 
         val selected = withContext(Dispatchers.IO) {
             service.accessControlPackages.toMutableSet()
@@ -29,8 +34,9 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
 
         defer {
             withContext(Dispatchers.IO) {
-                val changed = selected != service.accessControlPackages
+                val changed = selected != service.accessControlPackages || mode != service.accessControlMode
                 service.accessControlPackages = selected
+                service.accessControlMode = mode
                 if (clashRunning && changed) {
                     stopClashService()
                     while (clashRunning) {
@@ -87,29 +93,37 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                         }
 
                         AccessControlDesign.Request.Import -> {
-                            val clipboard = getSystemService<ClipboardManager>()
-                            val data = clipboard?.primaryClip
-
-                            if (data != null && data.itemCount > 0) {
-                                val packages = data.getItemAt(0).text.split("\n").toSet()
-                                val all = design.apps.map(AppInfo::packageName).intersect(packages)
-
+                            try {
+                                val clip = getSystemService<ClipboardManager>()?.primaryClip
+                                val text = if (clip != null && clip.itemCount > 0) clip.getItemAt(0).text?.toString().orEmpty() else ""
+                                val backup = withContext(Dispatchers.Default) { AccessControlTransfer.decode(text) }
+                                val imported = backup.packages - packageName
+                                val missing = withContext(Dispatchers.IO) {
+                                    imported.count { name ->
+                                        try { packageManager.getApplicationInfo(name, 0); false }
+                                        catch (_: PackageManager.NameNotFoundException) { true }
+                                    }
+                                }
+                                val apps = loadApps(imported)
                                 selected.clear()
-                                selected.addAll(all)
+                                selected.addAll(imported)
+                                mode = backup.mode ?: mode
+                                design.patchApps(apps)
+                                design.showToast(getString(DesignR.string.access_control_imported, selected.size, missing), ToastDuration.Long)
+                            } catch (e: CancellationException) { throw e
+                            } catch (e: Exception) {
+                                design.showToast(getString(DesignR.string.access_control_import_failed, e.message ?: e.toString()), ToastDuration.Long)
                             }
-
-                            design.rebindAll()
                         }
 
                         AccessControlDesign.Request.Export -> {
-                            val clipboard = getSystemService<ClipboardManager>()
-
-                            val data = ClipData.newPlainText(
-                                "packages",
-                                selected.joinToString("\n")
-                            )
-
-                            clipboard?.setPrimaryClip(data)
+                            try {
+                                val clipboard = checkNotNull(getSystemService<ClipboardManager>())
+                                clipboard.setPrimaryClip(ClipData.newPlainText("CMFA application routing", AccessControlTransfer.encode(selected, mode)))
+                                design.showToast(DesignR.string.access_control_exported, ToastDuration.Short)
+                            } catch (e: Exception) {
+                                design.showToast(e.message ?: e.toString(), ToastDuration.Long)
+                            }
                         }
                     }
                 }
@@ -140,7 +154,7 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                     it.requestedPermissions?.contains(INTERNET) == true || it.applicationInfo!!.uid < android.os.Process.FIRST_APPLICATION_UID
                 }
                 .filter {
-                    systemApp || !it.isSystemApp
+                    systemApp || !it.isSystemApp || it.packageName in selected
                 }
                 .map {
                     it.toAppInfo(pm)
