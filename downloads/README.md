@@ -1,8 +1,10 @@
 # 抓包测试版 APK
 
-[下载 ARM64 APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-routing-transfer-arm64-v8a.apk)
+本版将抓包名单与分应用路由名单分开：额外接管的抓包应用强制直连，原代理范围保持原规则。保存或停止抓包时自动重建接管范围，原名单不变。仍需本地 VPN；策略测试通过，真机接管和恢复行为待验证。
 
-版本：`2.11.34.routing-transfer.Alpha`（211039）。在“设置 → 网络 → 访问控制应用包列表”的右上角菜单加入醒目的分应用路由导入、导出入口。导出复制 JSON（路由模式与包名），导入恢复名单与模式；兼容旧版每行一个包名的文本。未安装应用的包名保留，已选系统应用不再被隐藏；无效数据不会清空原配置。操作后显示提示，返回上一页保存并按需重启 VPN。保留抓包、Path 正则、复制 cURL 和诊断功能，覆盖安装旧测试版可保留 CA。
+[下载 ARM64 APK](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-routing-arm64-v8a.apk)
+
+版本：`2.11.34.capture-routing.Alpha`（211040）。在“设置 → 网络 → 访问控制应用包列表”的右上角菜单加入醒目的分应用路由导入、导出入口。导出复制 JSON（路由模式与包名），导入恢复名单与模式；兼容旧版每行一个包名的文本。未安装应用的包名保留，已选系统应用不再被隐藏；无效数据不会清空原配置。操作后显示提示，返回上一页保存并按需重启 VPN。保留抓包、Path 正则、复制 cURL 和诊断功能，覆盖安装旧测试版可保留 CA。
 
 适用于 ARM64 Android 手机，最低 Android 5.0。安装后进入“设置 → HTTP / HTTPS 抓包”。
 

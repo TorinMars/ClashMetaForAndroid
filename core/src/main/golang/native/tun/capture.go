@@ -18,6 +18,20 @@ import (
 type captureTunnel struct {
 	C.Tunnel
 	providers P.Tunnel
+	routing   capture.Routing
+}
+
+func (t *captureTunnel) routed(metadata *C.Metadata) (*C.Metadata, int) {
+	uid := -1
+	if metadata.RawSrcAddr != nil && metadata.RawDstAddr != nil {
+		uid = app.QuerySocketUid(metadata.RawSrcAddr, metadata.RawDstAddr)
+	}
+	if proxy := t.routing.Proxy(uid); proxy != "" {
+		copy := *metadata
+		copy.SpecialProxy = proxy
+		metadata = &copy
+	}
+	return metadata, uid
 }
 
 func (t *captureTunnel) Providers() map[string]P.ProxyProvider    { return t.providers.Providers() }
@@ -26,6 +40,9 @@ func (t *captureTunnel) RuleUpdateCallback() *utils.Callback[P.RuleProvider] {
 	return t.providers.RuleUpdateCallback()
 }
 func (t *captureTunnel) HandleUDPPacket(packet C.UDPPacket, metadata *C.Metadata) {
+	if t.routing.Mode != "" {
+		metadata, _ = t.routed(metadata)
+	}
 	capture.Default.ObserveUDP(int(metadata.DstPort), func() int {
 		if metadata.RawSrcAddr != nil && metadata.RawDstAddr != nil {
 			return app.QuerySocketUid(metadata.RawSrcAddr, metadata.RawDstAddr)
@@ -35,13 +52,13 @@ func (t *captureTunnel) HandleUDPPacket(packet C.UDPPacket, metadata *C.Metadata
 	t.Tunnel.HandleUDPPacket(packet, metadata)
 }
 func (t *captureTunnel) HandleTCPConn(conn net.Conn, metadata *C.Metadata) {
+	var uid int
+	if capture.Default.Enabled() || t.routing.Mode != "" {
+		metadata, uid = t.routed(metadata)
+	}
 	if !capture.Default.Enabled() {
 		t.Tunnel.HandleTCPConn(conn, metadata)
 		return
-	}
-	uid := -1
-	if metadata.RawSrcAddr != nil && metadata.RawDstAddr != nil {
-		uid = app.QuerySocketUid(metadata.RawSrcAddr, metadata.RawDstAddr)
 	}
 	original := *metadata
 	dial := func(ctx context.Context, address string) (net.Conn, error) {

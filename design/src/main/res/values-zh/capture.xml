@@ -10,7 +10,7 @@
     <string name="capture_title">HTTP / HTTPS 抓包</string>
     <string name="capture_enable">启用抓包</string>
     <string name="capture_https">解密 HTTPS（目标应用须信任抓包 CA）</string>
-    <string name="capture_explanation">仅在 VPN 模式抓取匹配流量。空白名单表示不限；同类条件取并集，不同类别同时满足。域名支持 *.example.com（仅子域名）；path 区分大小写、不含查询参数，支持末尾 * 或 re:正则（例如 re:(?i)scan 匹配包含 scan 的路径，忽略大小写）。未匹配流量正常转发。规则作用于新连接；保存会关闭正在解密的连接。</string>
+    <string name="capture_explanation">使用本地 VPN 抓取匹配流量。抓包应用独立于分应用路由名单，额外接管的应用走直连；开启/停止抓包或更换应用会自动重建 VPN 接管范围。抓包期间暂不使用系统 HTTP 代理。空白名单表示不限；同类条件取并集，不同类别同时满足。域名支持 *.example.com（仅子域名）；path 区分大小写、不含查询参数，支持末尾 * 或 re:正则（例如 re:(?i)scan 匹配包含 scan 的路径，忽略大小写）。未匹配流量正常转发。规则作用于新连接；保存会关闭正在解密的连接。</string>
     <string name="capture_domains">域名白名单（每行一项）</string>
     <string name="capture_paths">Path 白名单（每行一项，正则以 re: 开头）</string>
     <string name="capture_apps">选择应用白名单</string>

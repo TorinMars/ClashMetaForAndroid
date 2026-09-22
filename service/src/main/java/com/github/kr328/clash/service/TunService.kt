@@ -19,12 +19,15 @@ import com.github.kr328.clash.service.util.sendClashStarted
 import com.github.kr328.clash.service.util.sendClashStopped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.channels.Channel
+import com.github.kr328.clash.core.Clash
 
 class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.Default) {
     private val self: TunService
         get() = this
 
     private var reason: String? = null
+    private val captureChanges = Channel<Unit>(Channel.CONFLATED)
 
     private val runtime = clashRuntime {
         val store = ServiceStore(self)
@@ -48,6 +51,11 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
 
             while (isActive) {
                 val quit = select<Boolean> {
+                    captureChanges.onReceive {
+                        Clash.stopHttp()
+                        tun.open()
+                        false
+                    }
                     close.onEvent {
                         true
                     }
@@ -87,6 +95,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
             return stopSelf()
 
         StatusProvider.serviceRunning = true
+        CaptureController.onScopeChanged = { captureChanges.trySend(Unit) }
 
         StaticNotificationModule.createNotificationChannel(this)
         StaticNotificationModule.notifyLoadingNotification(this)
@@ -101,6 +110,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
     }
 
     override fun onDestroy() {
+        CaptureController.onScopeChanged = null
         TunModule.requestStop()
 
         StatusProvider.serviceRunning = false
@@ -122,6 +132,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
 
     private fun TunModule.open() {
         val store = ServiceStore(self)
+        val scope = CaptureController.vpnScope(self, store.accessControlMode, store.accessControlPackages)
 
         val device = with(Builder()) {
             // Interface address
@@ -154,15 +165,15 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
             }
 
             // Access Control
-            when (store.accessControlMode) {
+            when (scope.mode) {
                 AccessControlMode.AcceptAll -> Unit
                 AccessControlMode.AcceptSelected -> {
-                    (store.accessControlPackages + packageName).forEach {
+                    scope.packages.forEach {
                         runCatching { addAllowedApplication(it) }
                     }
                 }
                 AccessControlMode.DenySelected -> {
-                    (store.accessControlPackages - packageName).forEach {
+                    scope.packages.forEach {
                         runCatching { addDisallowedApplication(it) }
                     }
                 }
@@ -199,7 +210,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
             }
 
             // System Proxy
-            if (Build.VERSION.SDK_INT >= 29 && store.systemProxy) {
+            if (Build.VERSION.SDK_INT >= 29 && store.systemProxy && !scope.capturing) {
                 listenHttp()?.let {
                     setHttpProxy(
                         ProxyInfo.buildDirectProxy(

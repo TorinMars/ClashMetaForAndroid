@@ -1,6 +1,7 @@
 package tun
 
 import (
+	"cfa/native/capture"
 	"encoding/json"
 	"io"
 	"net"
@@ -67,7 +68,7 @@ func Start(fd int, stack, gateway, portal, dns string) (io.Closer, error) {
 	tunOptions, _ := json.Marshal(options)
 	log.Debugln(string(tunOptions))
 
-	listener, err := sing_tun.New(options, &captureTunnel{Tunnel: tunnel.Tunnel, providers: tunnel.Tunnel})
+	listener, err := sing_tun.New(options, &captureTunnel{Tunnel: tunnel.Tunnel, providers: tunnel.Tunnel, routing: capture.Default.Routing()})
 	if err != nil {
 		log.Errorln("TUN:", err)
 		return nil, err

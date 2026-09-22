@@ -68,6 +68,9 @@ func (m *Manager) resetDiagnosticsLocked() {
 
 func (m *Manager) diagnosticsLocked(limit int) string {
 	var b strings.Builder
+	if m.routing.Mode != "" {
+		fmt.Fprintf(&b, "抓包独立接管：原分应用路由 %s，原路由 UID %v；额外接管应用直连，无法识别 UID 时拒绝连接。\n", m.routing.Mode, m.routing.UIDs)
+	}
 	fmt.Fprintf(&b, "应用白名单 UID：%v（空表示全部，-1 表示未识别）\n域名规则：%d · Path 规则：%d\n", m.config.UIDs, len(m.config.Domains), len(m.config.Paths))
 	if len(m.diagnosticCounts) == 0 {
 		b.WriteString("尚未观察到新的 TUN TCP 连接或 UDP 数据包。请重启目标应用后操作。\n")

@@ -34,6 +34,7 @@ type Record struct {
 }
 
 type Manager struct {
+	routing          Routing
 	mu               sync.Mutex
 	dir              string
 	config           Config
@@ -189,6 +190,16 @@ func (m *Manager) command(command, payload string) (any, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	switch command {
+	case "routing":
+		var r Routing
+		if err := json.Unmarshal([]byte(payload), &r); err != nil {
+			return nil, err
+		}
+		if r.Mode != "" && r.Mode != "AcceptSelected" && r.Mode != "DenySelected" {
+			return nil, errors.New("invalid routing mode")
+		}
+		m.routing = r
+		return map[string]bool{"ok": true}, nil
 	case "state":
 		return map[string]any{"config": m.config, "count": len(m.records), "lastError": m.lastError}, nil
 	case "diagnostics":
