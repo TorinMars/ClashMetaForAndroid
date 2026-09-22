@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="capture_copy_all_curl">一键复制全部请求为 Shell 脚本</string>
+    <string name="capture_script_copied">已复制 %1$d 条请求，跳过 %2$d 条不完整记录。保存为 requests.sh 后执行 sh requests.sh</string>
+    <string name="capture_script_too_large">脚本超过剪贴板大小限制，请直接保存为 .sh 文件</string>
     <string name="capture_copy_curl">复制为 cURL</string>
     <string name="capture_curl_copied">cURL 已复制</string>
     <string name="capture_diagnostics_copied">诊断日志已复制，可直接粘贴发送</string>

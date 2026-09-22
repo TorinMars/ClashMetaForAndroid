@@ -4,9 +4,9 @@ A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Me
 
 ### APK 下载
 
-[下载最新版 APK（ARM64 · 211040）](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-capture-routing-arm64-v8a.apk)
+[下载最新版 APK（ARM64 · 211041）](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-curl-script-arm64-v8a.apk)
 
-版本：`2.11.34.capture-routing.Alpha`。支持抓包名单与分应用代理名单分离，可覆盖安装此前的抓包测试版，保留 CA 和配置。
+版本：`2.11.34.curl-script.Alpha`。支持一键复制当前全部抓包请求为 cURL Shell 脚本，以及抓包名单与分应用代理名单分离。可覆盖安装此前的抓包测试版，保留 CA 和配置。
 
 [安装说明与校验值](downloads/README.md) · [抓包使用说明](CAPTURE.md)
 

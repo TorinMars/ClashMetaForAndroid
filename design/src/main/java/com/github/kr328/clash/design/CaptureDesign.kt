@@ -24,6 +24,7 @@ class CaptureDesign(context: Context) : Design<CaptureDesign.Request>(context) {
         object Refresh : Request()
         object Clear : Request()
         object CopyDiagnostics : Request()
+        object CopyAllCurl : Request()
         data class Detail(val id: Long) : Request()
         data class Menu(val id: Long) : Request()
     }
@@ -72,6 +73,7 @@ class CaptureDesign(context: Context) : Design<CaptureDesign.Request>(context) {
         content.addView(diagnostics)
         button(R.string.capture_refresh, Request.Refresh)
         button(R.string.capture_clear, Request.Clear)
+        button(R.string.capture_copy_all_curl, Request.CopyAllCurl)
         content.addView(records)
     }
     private fun input(label: Int, placeholder: String) = EditText(context).apply {

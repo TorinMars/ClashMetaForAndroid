@@ -49,6 +49,8 @@ type Manager struct {
 	diagnosticCounts map[string]uint64
 	diagnosticEvents []string
 	lastUDPSample    time.Time
+	scriptSnapshot   []rune
+	scriptToken      uint64
 }
 
 var Default = New("")
@@ -190,6 +192,40 @@ func (m *Manager) command(command, payload string) (any, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	switch command {
+	case "curl-script-start":
+		if len(m.records) == 0 {
+			return nil, errors.New("暂无可复制的请求")
+		}
+		script, copied, skipped := curlScript(m.records)
+		if copied == 0 {
+			return nil, errors.New("所有请求均已截断或无法转换为 cURL")
+		}
+		m.scriptToken++
+		m.scriptSnapshot = []rune(script)
+		return map[string]any{"token": m.scriptToken, "length": len(m.scriptSnapshot), "copied": copied, "skipped": skipped}, nil
+	case "curl-script-part", "curl-script-end":
+		var request struct {
+			Token  uint64 `json:"token"`
+			Offset int    `json:"offset"`
+		}
+		if err := json.Unmarshal([]byte(payload), &request); err != nil {
+			return nil, err
+		}
+		if request.Token != m.scriptToken || m.scriptSnapshot == nil {
+			return nil, errors.New("复制快照已失效，请重试")
+		}
+		if command == "curl-script-end" {
+			m.scriptSnapshot = nil
+			return map[string]bool{"ok": true}, nil
+		}
+		if request.Offset < 0 || request.Offset > len(m.scriptSnapshot) {
+			return nil, errors.New("invalid script offset")
+		}
+		end := request.Offset + 8192
+		if end > len(m.scriptSnapshot) {
+			end = len(m.scriptSnapshot)
+		}
+		return map[string]any{"text": string(m.scriptSnapshot[request.Offset:end]), "next": end}, nil
 	case "routing":
 		var r Routing
 		if err := json.Unmarshal([]byte(payload), &r); err != nil {
@@ -205,6 +241,7 @@ func (m *Manager) command(command, payload string) (any, error) {
 	case "diagnostics":
 		return map[string]any{"config": m.config, "lastError": m.lastError, "count": len(m.records), "log": m.diagnosticsLocked(200)}, nil
 	case "clear":
+		m.scriptSnapshot = nil
 		m.records = nil
 		m.resetDiagnosticsLocked()
 		m.epoch++

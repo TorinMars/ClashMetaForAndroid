@@ -18,6 +18,7 @@ import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import com.github.kr328.clash.common.util.ticker
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -85,6 +86,7 @@ class CaptureActivity : BaseActivity<CaptureDesign>() {
                                 CaptureDesign.Request.Refresh -> refresh(page)
                                 CaptureDesign.Request.Clear -> { command("clear"); refresh(page) }
                                 CaptureDesign.Request.CopyDiagnostics -> copyDiagnostics(page)
+                                CaptureDesign.Request.CopyAllCurl -> copyAllCurl(page)
                                 is CaptureDesign.Request.Detail -> details(command("get", request.id.toString()))
                                 is CaptureDesign.Request.Menu -> showRecordMenu(request.id, page)
                             }
@@ -108,6 +110,32 @@ class CaptureActivity : BaseActivity<CaptureDesign>() {
         val status = getString(if (result.optBoolean("enabled")) DesignR.string.capture_running else DesignR.string.capture_stopped)
         page.status("$status · ${rows.length()}/100\n${result.optString("lastError")}")
         page.diagnostics(result.optString("diagnostics"))
+    }
+
+    private suspend fun copyAllCurl(page: CaptureDesign) {
+        val info = command("curl-script-start")
+        val token = info.getLong("token")
+        val script = try {
+            val buffer = StringBuilder()
+            var offset = 0
+            while (offset < info.getInt("length")) {
+                val part = command("curl-script-part", JSONObject().put("token", token).put("offset", offset).toString())
+                buffer.append(part.getString("text"))
+                offset = part.getInt("next")
+            }
+            buffer.toString()
+        } finally {
+            withContext(NonCancellable) { runCatching { command("curl-script-end", JSONObject().put("token", token).toString()) } }
+        }
+        // Keep clipboard Binder transactions below Android's shared size limit.
+        if (script.length > 200000) {
+            page.showToast(DesignR.string.capture_script_too_large, ToastDuration.Long)
+            export("requests.sh", "text/x-shellscript", script)
+            return
+        }
+        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+            .setPrimaryClip(ClipData.newPlainText("requests.sh", script))
+        page.showToast(getString(DesignR.string.capture_script_copied, info.getInt("copied"), info.getInt("skipped")), ToastDuration.Long)
     }
 
     private fun showRecordMenu(id: Long, page: CaptureDesign) {
