@@ -2,13 +2,13 @@
 
 Automatic profile updates use the interval set in each profile's properties (minimum 15 minutes; clear it to disable updates). In App Settings, enable **Pause automatic updates at night** and choose the start and end hour for a device-local quiet window. Updates due during that window run when it ends. Manual profile updates remain available. Matching start and end hours disable the window.
 
-Version `2.11.36.capture-scheduling` (211043) combines these settings with the HTTP/HTTPS capture feature, capture allowlists, diagnostics, and cURL script export. The `capture` build has its own launcher and application name, **T-Agent Capture**, and package ID, `com.torin.clash.capture`. It installs alongside earlier Alpha and Meta apps. Import profiles and configure a capture CA separately for the new installation.
+Source version `2.11.37.capture-scheduling` (211044) combines these settings with the HTTP/HTTPS capture feature, capture allowlists, diagnostics, and cURL script export. The `capture` build has its own launcher and application name, **T-Agent Capture**, and package ID, `com.torin.clash.capture`. It installs alongside earlier Alpha and Meta apps. Import profiles and configure a capture CA separately for the new installation.
 
 A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta) for Android
 
 ### APK download
 
-[Download the latest APK (ARM64, 211043)](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/main/downloads/t-agent-capture-2.11.36-arm64-v8a.apk)
+[Download the latest device-tested APK (ARM64, 211043)](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/main/downloads/t-agent-capture-2.11.36-arm64-v8a.apk)
 
 Version: `2.11.36.capture-scheduling`. Includes HTTP/HTTPS capture, independent capture and proxy routing scopes, cURL script export, configurable profile update intervals, and overnight quiet hours. This APK uses a separate package ID and the current local debug signing key.
 
@@ -33,6 +33,8 @@ Local HTTP/HTTPS capture (including HTTPS HTTP/2), with application, domain and 
 ### Build
 
 Build the named capture application with `./gradlew :app:assembleCaptureRelease`. This flavor uses the fixed package ID `com.torin.clash.capture` and display name `T-Agent Capture`. The Alpha and Meta variants remain available; the optional package override below applies to those variants.
+
+GitHub Debug and Pre-Release builds target T-Agent Capture. The workflows use the explicit Go cache for the nested Go modules. Pre-Release always uploads test APKs as workflow artifacts. Without signing secrets it uses the debug key and skips publishing a GitHub release; these test APKs are not signed with the key used for the device-tested APK above. To publish stable signed releases, configure `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS`, and `SIGNING_KEY_PASSWORD` for the tracked `release.keystore`. All three must be present together. The manual Release workflow requires these secrets before changing versions or starting the build. Signing settings are never printed to logs.
 
 1. Update submodules
 

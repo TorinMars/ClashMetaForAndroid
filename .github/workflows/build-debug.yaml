@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
-      
+
       - name: Checkout submodules
         run: git submodule update --init --recursive --force
 
@@ -31,6 +31,7 @@ jobs:
         with:
           go-download-base-url: 'https://github.com/MetaCubeX/go/releases/download/build'
           go-version: '1.26'
+          cache: false
 
       - name: Apply Patches
         run: |
@@ -52,60 +53,46 @@ jobs:
           sudo update-ca-certificates
           cp -f /etc/ssl/certs/ca-certificates.crt core/src/foss/golang/clash/component/ca/ca-certificates.crt
 
-      # - name: Signing properties
-      #   env:
-      #     SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-      #     SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-      #     SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-      #   run: |
-      #     touch signing.properties
-      #     echo keystore.password="$SIGNING_STORE_PASSWORD" > signing.properties
-      #     echo key.alias="$SIGNING_KEY_ALIAS" >> signing.properties
-      #     echo key.password="$SIGNING_KEY_PASSWORD" >> signing.properties
-            
-      #     echo "cat signing.properties"
-      #     cat signing.properties
-
       - name: Build
         if: success()
-        run: ./gradlew --no-daemon app:assembleAlphaRelease
-          
-      - name: Upload Aritfact (universal)
+        run: ./gradlew --no-daemon app:assembleCaptureRelease
+
+      - name: Upload Artifact (universal)
         uses: actions/upload-artifact@v7
         if: ${{  success() }}
         with:
-          name: CMFA Debug Unsigned APK (universal) 
+          name: T-Agent Capture Test APK (universal)
           path: |
-            app/build/outputs/apk/alpha/release/*-universal-*.apk
-      
-      - name: Upload Aritfact (arm64-v8a)
+            app/build/outputs/apk/capture/release/*-universal-*.apk
+
+      - name: Upload Artifact (arm64-v8a)
         uses: actions/upload-artifact@v7
         if: ${{  success() }}
         with:
-          name: CMFA Debug Unsigned APK (arm64-v8a)
+          name: T-Agent Capture Test APK (arm64-v8a)
           path: |
-            app/build/outputs/apk/alpha/release/*-arm64-v8a-*.apk
-      
-      - name: Upload Aritfact (armeabi-v7a)
+            app/build/outputs/apk/capture/release/*-arm64-v8a-*.apk
+
+      - name: Upload Artifact (armeabi-v7a)
         uses: actions/upload-artifact@v7
         if: ${{  success() }}
         with:
-          name: CMFA Debug Unsigned APK (armeabi-v7a)
+          name: T-Agent Capture Test APK (armeabi-v7a)
           path: |
-            app/build/outputs/apk/alpha/release/*-armeabi-v7a-*.apk
-      
-      - name: Upload Aritfact (x86_64)
+            app/build/outputs/apk/capture/release/*-armeabi-v7a-*.apk
+
+      - name: Upload Artifact (x86_64)
         uses: actions/upload-artifact@v7
         if: ${{  success() }}
         with:
-          name: CMFA Debug Unsigned APK (x86_64)
+          name: T-Agent Capture Test APK (x86_64)
           path: |
-            app/build/outputs/apk/alpha/release/*-x86_64-*.apk
-      
-      - name: Upload Aritfact (x86)
+            app/build/outputs/apk/capture/release/*-x86_64-*.apk
+
+      - name: Upload Artifact (x86)
         uses: actions/upload-artifact@v7
         if: ${{  success() }}
         with:
-          name: CMFA Debug Unsigned APK (x86)
+          name: T-Agent Capture Test APK (x86)
           path: |
-            app/build/outputs/apk/alpha/release/*-x86-*.apk
+            app/build/outputs/apk/capture/release/*-x86-*.apk

@@ -64,3 +64,6 @@ google-services.json
 
 # MacOS
 .DS_Store
+
+# Python CI helper caches
+__pycache__/

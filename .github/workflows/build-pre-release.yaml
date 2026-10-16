@@ -8,10 +8,23 @@ on:
 jobs:
   BuildPreRelease:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
-      
+
+      - name: Test signing configuration
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+
+      - name: Prepare signing settings
+        id: signing
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: python3 .github/scripts/prepare_signing.py
+
       - name: Checkout submodules
         run: git submodule update --init --recursive --force
 
@@ -29,6 +42,7 @@ jobs:
         with:
           go-download-base-url: 'https://github.com/MetaCubeX/go/releases/download/build'
           go-version: '1.26'
+          cache: false
 
       - name: Apply Patches
         run: |
@@ -50,46 +64,39 @@ jobs:
           sudo update-ca-certificates
           cp -f /etc/ssl/certs/ca-certificates.crt core/src/foss/golang/clash/component/ca/ca-certificates.crt
 
-      - name: Signing properties
-        env:
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-        run: |
-          touch signing.properties
-          echo keystore.password="$SIGNING_STORE_PASSWORD" > signing.properties
-          echo key.alias="$SIGNING_KEY_ALIAS" >> signing.properties
-          echo key.password="$SIGNING_KEY_PASSWORD" >> signing.properties
-            
-          echo "cat signing.properties"
-          cat signing.properties
-
       - name: Pre-release Build
         if: success()
-        run: ./gradlew --no-daemon app:assembleAlphaRelease
+        run: ./gradlew --no-daemon app:assembleCaptureRelease
 
-      # Delete old Prerelease-alpha
-      - uses: dev-drprasad/delete-tag-and-release@v1.1
+      - name: Upload test APKs
+        uses: actions/upload-artifact@v7
         with:
-          tag_name: Prerelease-alpha
+          name: T-Agent Capture APKs
+          path: app/build/outputs/apk/capture/release/*.apk
+          if-no-files-found: error
+          retention-days: 7
+
+      # Delete old Prerelease-capture
+      - uses: dev-drprasad/delete-tag-and-release@v1.1
+        if: steps.signing.outputs.configured == 'true'
+        with:
+          tag_name: Prerelease-capture
           github_token: ${{ secrets.GITHUB_TOKEN }}
           delete_release: true
 
       - name: Tag Repo
+        if: steps.signing.outputs.configured == 'true'
         uses: richardsimko/update-tag@v3
         with:
-          tag_name: Prerelease-alpha
+          tag_name: Prerelease-capture
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Alpha
+      - name: Upload Capture
         uses: softprops/action-gh-release@v3
-        if: ${{  success() }}
+        if: success() && steps.signing.outputs.configured == 'true'
         with:
-          tag_name: Prerelease-alpha
-          files: app/build/outputs/apk/alpha/release/*
+          tag_name: Prerelease-capture
+          files: app/build/outputs/apk/capture/release/*
           prerelease: true
           generate_release_notes: true
-
-      - name: Release Changelog Builder
-        uses: mikepenz/release-changelog-builder-action@v6
