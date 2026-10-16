@@ -1,5 +1,15 @@
 # Capture APK builds
 
+## T-Agent Capture 2.11.36 (211043)
+
+[Download the ARM64 APK](t-agent-capture-2.11.36-arm64-v8a.apk).
+
+Application and launcher name: **T-Agent Capture**. Package ID: `com.torin.clash.capture`. This build combines packet capture and subscription scheduling under a separate app identity, so it can be installed alongside earlier Alpha and Meta builds. Profiles, settings, and the capture CA belong to the new installation and need separate setup.
+
+Build target: `:app:assembleCaptureRelease`. The APK is signed with the current local debug key. Its checksum is listed in [SHA256SUMS](SHA256SUMS).
+
+Verification: Capture variant service unit tests (2 passed), the Capture release build and lint checks, APK package/label/signature checks, and installation and launch on an ARM64 Android phone. The earlier Alpha capture app remained installed. Captured traffic was not exercised during this installation check.
+
 ## 2.11.35.capture-scheduling.Alpha (211042)
 
 [Download the ARM64 APK](cmfa-2.11.35-capture-scheduling-arm64-v8a.apk).

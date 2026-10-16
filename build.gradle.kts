@@ -58,8 +58,8 @@ subprojects {
             minSdk = 21
             targetSdk = 35
 
-            versionName = "2.11.35.capture-scheduling"
-            versionCode = 211042
+            versionName = "2.11.36.capture-scheduling"
+            versionCode = 211043
 
             resValue("string", "release_name", "v$versionName")
             resValue("integer", "release_code", "$versionCode")
@@ -132,6 +132,18 @@ subprojects {
                     applicationIdSuffix = ".meta"
                 }
             }
+
+            create("capture") {
+                dimension = flavorDimensionList[0]
+
+                if (isApp) {
+                    applicationId = "com.torin.clash.capture"
+                }
+
+                buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
+                resValue("string", "launch_name", "T-Agent Capture")
+                resValue("string", "application_name", "T-Agent Capture")
+            }
         }
 
         sourceSets {
@@ -139,6 +151,9 @@ subprojects {
                 java.srcDirs("src/foss/java")
             }
             getByName("alpha") {
+                java.srcDirs("src/foss/java")
+            }
+            getByName("capture") {
                 java.srcDirs("src/foss/java")
             }
         }

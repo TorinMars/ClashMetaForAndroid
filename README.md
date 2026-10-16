@@ -1,16 +1,16 @@
-## Clash Meta for Android
+## T-Agent Capture
 
 Automatic profile updates use the interval set in each profile's properties (minimum 15 minutes; clear it to disable updates). In App Settings, enable **Pause automatic updates at night** and choose the start and end hour for a device-local quiet window. Updates due during that window run when it ends. Manual profile updates remain available. Matching start and end hours disable the window.
 
-Version `2.11.35.capture-scheduling.Alpha` (211042) combines these settings with the HTTP/HTTPS capture feature, capture allowlists, diagnostics, and cURL script export. It uses the capture application's existing package ID, `com.github.metacubex.clash.alpha`. Updating an existing installation requires the same signing key.
+Version `2.11.36.capture-scheduling` (211043) combines these settings with the HTTP/HTTPS capture feature, capture allowlists, diagnostics, and cURL script export. The `capture` build has its own launcher and application name, **T-Agent Capture**, and package ID, `com.torin.clash.capture`. It installs alongside earlier Alpha and Meta apps. Import profiles and configure a capture CA separately for the new installation.
 
 A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta) for Android
 
 ### APK download
 
-[Download the latest APK (ARM64, 211042)](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/main/downloads/cmfa-2.11.35-capture-scheduling-arm64-v8a.apk)
+[Download the latest APK (ARM64, 211043)](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/main/downloads/t-agent-capture-2.11.36-arm64-v8a.apk)
 
-Version: `2.11.35.capture-scheduling.Alpha`. Includes HTTP/HTTPS capture, independent capture and proxy routing scopes, cURL script export, configurable profile update intervals, and overnight quiet hours. This APK uses the current local debug signing key; it cannot update an earlier APK signed with a different key. Uninstalling an earlier installation clears its configuration and capture CA.
+Version: `2.11.36.capture-scheduling`. Includes HTTP/HTTPS capture, independent capture and proxy routing scopes, cURL script export, configurable profile update intervals, and overnight quiet hours. This APK uses a separate package ID and the current local debug signing key.
 
 [安装说明与校验值](downloads/README.md) · [抓包使用说明](CAPTURE.md)
 
@@ -31,6 +31,8 @@ Local HTTP/HTTPS capture (including HTTPS HTTP/2), with application, domain and 
 - `armeabi-v7a` , `arm64-v8a`, `x86` or `x86_64` Architecture
 
 ### Build
+
+Build the named capture application with `./gradlew :app:assembleCaptureRelease`. This flavor uses the fixed package ID `com.torin.clash.capture` and display name `T-Agent Capture`. The Alpha and Meta variants remain available; the optional package override below applies to those variants.
 
 1. Update submodules
 
