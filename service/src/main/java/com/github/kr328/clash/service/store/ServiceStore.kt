@@ -65,4 +65,19 @@ class ServiceStore(context: Context) {
         key = "dynamic_notification",
         defaultValue = true
     )
+
+    var quietHoursEnabled by store.boolean(
+        key = "profile_quiet_hours_enabled",
+        defaultValue = false
+    )
+
+    var quietHoursStart by store.int(
+        key = "profile_quiet_hours_start",
+        defaultValue = 22
+    )
+
+    var quietHoursEnd by store.int(
+        key = "profile_quiet_hours_end",
+        defaultValue = 7
+    )
 }

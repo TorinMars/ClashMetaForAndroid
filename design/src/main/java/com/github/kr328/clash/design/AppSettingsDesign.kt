@@ -1,5 +1,6 @@
 package com.github.kr328.clash.design
 
+import android.app.TimePickerDialog
 import android.content.Context
 import android.view.View
 import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
@@ -20,6 +21,7 @@ class AppSettingsDesign(
     behavior: Behavior,
     running: Boolean,
     onHideIconChange: (hide: Boolean) -> Unit,
+    onUpdateScheduleChange: () -> Unit,
 ) : Design<AppSettingsDesign.Request>(context) {
     enum class Request {
         ReCreateAllActivities
@@ -89,6 +91,34 @@ class AppSettingsDesign(
             }
 
             category(R.string.service)
+
+            switch(
+                value = srvStore::quietHoursEnabled,
+                icon = R.drawable.ic_outline_update,
+                title = R.string.quiet_hours,
+                summary = R.string.quiet_hours_summary,
+            ) {
+                listener = OnChangedListener { onUpdateScheduleChange() }
+            }
+
+            fun quietHour(title: Int, initial: () -> Int, save: (Int) -> Unit) {
+                val preference = clickable(title, R.drawable.ic_outline_update)
+                preference.summary = String.format("%02d:00", initial())
+                preference.clicked {
+                    TimePickerDialog(context, { _, hour, _ ->
+                        save(hour)
+                        preference.summary = String.format("%02d:00", hour)
+                        onUpdateScheduleChange()
+                    }, initial(), 0, true).show()
+                }
+            }
+
+            quietHour(R.string.quiet_hours_start, { srvStore.quietHoursStart }) {
+                srvStore.quietHoursStart = it
+            }
+            quietHour(R.string.quiet_hours_end, { srvStore.quietHoursEnd }) {
+                srvStore.quietHoursEnd = it
+            }
 
             switch(
                 value = srvStore::dynamicNotification,

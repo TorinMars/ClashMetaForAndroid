@@ -1,12 +1,16 @@
 ## Clash Meta for Android
 
+Automatic profile updates use the interval set in each profile's properties (minimum 15 minutes; clear it to disable updates). In App Settings, enable **Pause automatic updates at night** and choose the start and end hour for a device-local quiet window. Updates due during that window run when it ends. Manual profile updates remain available. Matching start and end hours disable the window.
+
+Version `2.11.35.capture-scheduling.Alpha` (211042) combines these settings with the HTTP/HTTPS capture feature, capture allowlists, diagnostics, and cURL script export. It uses the capture application's existing package ID, `com.github.metacubex.clash.alpha`. Updating an existing installation requires the same signing key.
+
 A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta) for Android
 
-### APK 下载
+### APK download
 
-[下载最新版 APK（ARM64 · 211041）](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/http-capture/downloads/cmfa-2.11.34-curl-script-arm64-v8a.apk)
+[Download the latest APK (ARM64, 211042)](https://github.com/TorinMars/ClashMetaForAndroid/raw/refs/heads/main/downloads/cmfa-2.11.35-capture-scheduling-arm64-v8a.apk)
 
-版本：`2.11.34.curl-script.Alpha`。支持一键复制当前全部抓包请求为 cURL Shell 脚本，以及抓包名单与分应用代理名单分离。可覆盖安装此前的抓包测试版，保留 CA 和配置。
+Version: `2.11.35.capture-scheduling.Alpha`. Includes HTTP/HTTPS capture, independent capture and proxy routing scopes, cURL script export, configurable profile update intervals, and overnight quiet hours. This APK uses the current local debug signing key; it cannot update an earlier APK signed with a different key. Uninstalling an earlier installation clears its configuration and capture CA.
 
 [安装说明与校验值](downloads/README.md) · [抓包使用说明](CAPTURE.md)
 

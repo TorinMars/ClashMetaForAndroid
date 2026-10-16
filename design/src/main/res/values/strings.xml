@@ -59,6 +59,10 @@
     <string name="profile_url">Profile URL</string>
     <string name="auto_update">Auto Update</string>
     <string name="auto_update_minutes">Auto Update (Minutes)</string>
+    <string name="quiet_hours">Pause automatic updates at night</string>
+    <string name="quiet_hours_summary">Manual updates remain available. Equal start and end times disable the window.</string>
+    <string name="quiet_hours_start">Quiet hours start</string>
+    <string name="quiet_hours_end">Quiet hours end</string>
 
     <string name="accept_http_content">Accept only http(s)</string>
     <string name="at_least_15_minutes">At least 15 minutes or empty</string>

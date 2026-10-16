@@ -7,8 +7,10 @@ import com.github.kr328.clash.design.AppSettingsDesign
 import com.github.kr328.clash.design.model.Behavior
 import com.github.kr328.clash.design.store.UiStore.Companion.mainActivityAlias
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.ProfileReceiver
 import com.github.kr328.clash.util.ApplicationObserver
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 
 class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
@@ -20,6 +22,9 @@ class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
             this,
             clashRunning,
             ::onHideIconChange,
+            {
+                launch { ProfileReceiver.rescheduleAll(this@AppSettingsActivity, force = true) }
+            },
         )
 
         setContentDesign(design)

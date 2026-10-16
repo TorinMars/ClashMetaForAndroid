@@ -58,8 +58,8 @@ subprojects {
             minSdk = 21
             targetSdk = 35
 
-            versionName = "2.11.34.curl-script"
-            versionCode = 211041
+            versionName = "2.11.35.capture-scheduling"
+            versionCode = 211042
 
             resValue("string", "release_name", "v$versionName")
             resValue("integer", "release_code", "$versionCode")

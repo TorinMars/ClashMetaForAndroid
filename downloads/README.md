@@ -1,4 +1,16 @@
-# 抓包测试版 APK
+# Capture APK builds
+
+## 2.11.35.capture-scheduling.Alpha (211042)
+
+[Download the ARM64 APK](cmfa-2.11.35-capture-scheduling-arm64-v8a.apk).
+
+This build combines HTTP/HTTPS capture, allowlists, diagnostics, cURL export, and independent capture routing with subscription update intervals and device-local quiet hours. Set each profile's interval in its properties; configure the quiet window in App Settings. Manual updates remain available during quiet hours.
+
+Package: `com.github.metacubex.clash.alpha`. This build uses the current local debug signing key. Updating an existing installation requires a matching certificate; an older capture APK built with another debug key cannot be updated by this file. Uninstalling the old app removes its profiles, settings, and capture CA.
+
+Verification: Alpha service unit tests, Go capture tests with the race detector, and the Alpha release build. The APK's SHA-256 is listed in [SHA256SUMS](SHA256SUMS).
+
+## Earlier builds
 
 新增“一键复制全部请求为 Shell 脚本”：当前保留的最多 100 条请求按时间顺序组成 cURL 脚本，保存为 `requests.sh` 后执行 `sh requests.sh`。不完整记录注明并跳过；脚本过大时直接保存文件。复制时不会执行请求。
 

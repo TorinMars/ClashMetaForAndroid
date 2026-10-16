@@ -16,6 +16,7 @@ import com.github.kr328.clash.common.id.UndefinedIds
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.uuid
 import com.github.kr328.clash.service.data.ImportedDao
+import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.sendProfileUpdateCompleted
 import com.github.kr328.clash.service.util.sendProfileUpdateFailed
 import kotlinx.coroutines.*
@@ -56,10 +57,10 @@ class ProfileWorker : BaseService() {
         super.onStartCommand(intent, flags, startId)
 
         when (intent?.action) {
-            Intents.ACTION_PROFILE_REQUEST_UPDATE -> {
+            Intents.ACTION_PROFILE_REQUEST_UPDATE, Intents.ACTION_PROFILE_SCHEDULED_UPDATE -> {
                 intent.uuid?.also {
                     val job = launch {
-                        run(it)
+                        run(it, intent.action == Intents.ACTION_PROFILE_SCHEDULED_UPDATE)
                     }
 
                     jobs.add(job)
@@ -79,8 +80,21 @@ class ProfileWorker : BaseService() {
         return START_NOT_STICKY
     }
 
-    private suspend fun run(uuid: UUID) {
+    private suspend fun run(uuid: UUID, scheduled: Boolean) {
         val imported = ImportedDao().queryByUUID(uuid) ?: return
+
+        if (scheduled) {
+            val store = ServiceStore(this)
+            val now = System.currentTimeMillis()
+            if (QuietHours.nextAllowed(
+                    now, store.quietHoursStart,
+                    store.quietHoursEnd, store.quietHoursEnabled
+                ) > now
+            ) {
+                ProfileReceiver.scheduleNext(this, imported)
+                return
+            }
+        }
 
         try {
             processing(imported.name) {
@@ -88,7 +102,6 @@ class ProfileWorker : BaseService() {
             }
 
             completed(imported.uuid, imported.name)
-
             ProfileReceiver.scheduleNext(this, imported)
         } catch (e: Exception) {
             failed(imported.uuid, imported.name, e.message ?: "Unknown")

@@ -16,6 +16,7 @@ import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.importedDir
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -36,7 +37,7 @@ class ProfileReceiver : BroadcastReceiver() {
                     context.startForegroundServiceCompat(service)
                 }
             }
-            Intents.ACTION_PROFILE_REQUEST_UPDATE -> {
+            Intents.ACTION_PROFILE_SCHEDULED_UPDATE -> {
                 val redirect = intent.setComponent(ProfileWorker::class.componentName)
 
                 context.startForegroundServiceCompat(redirect)
@@ -48,8 +49,8 @@ class ProfileReceiver : BroadcastReceiver() {
         private val lock = Mutex()
         private var initialized: Boolean = false
 
-        suspend fun rescheduleAll(context: Context) = lock.withLock {
-            if (initialized)
+        suspend fun rescheduleAll(context: Context, force: Boolean = false) = lock.withLock {
+            if (initialized && !force)
                 return
 
             initialized = true
@@ -73,7 +74,11 @@ class ProfileReceiver : BroadcastReceiver() {
 
             context.getSystemService<AlarmManager>()?.cancel(intent)
 
-            intent.send(context, 0, null)
+            context.startForegroundServiceCompat(
+                Intent(Intents.ACTION_PROFILE_REQUEST_UPDATE)
+                    .setComponent(ProfileWorker::class.componentName)
+                    .setUUID(imported.uuid)
+            )
         }
 
         fun scheduleNext(context: Context, imported: Imported) {
@@ -90,14 +95,21 @@ class ProfileReceiver : BroadcastReceiver() {
                 .resolve("config.yaml")
                 .lastModified()
 
-            // file not existed
-            if (last < 0)
+            if (last <= 0)
                 return
 
-            val interval = (imported.interval - (current - last)).coerceAtLeast(0)
+            val store = ServiceStore(context)
+            val due = if (last > Long.MAX_VALUE - imported.interval) {
+                Long.MAX_VALUE
+            } else {
+                (last + imported.interval).coerceAtLeast(current)
+            }
+            val next = QuietHours.nextAllowed(
+                due, store.quietHoursStart, store.quietHoursEnd, store.quietHoursEnabled
+            )
 
             context.getSystemService<AlarmManager>()
-                ?.set(AlarmManager.RTC, current + interval, intent)
+                ?.set(AlarmManager.RTC, next, intent)
         }
 
         private suspend fun reset() = lock.withLock {
@@ -105,7 +117,7 @@ class ProfileReceiver : BroadcastReceiver() {
         }
 
         private fun pendingIntentOf(context: Context, imported: Imported): PendingIntent {
-            val intent = Intent(Intents.ACTION_PROFILE_REQUEST_UPDATE)
+            val intent = Intent(Intents.ACTION_PROFILE_SCHEDULED_UPDATE)
                 .setComponent(ProfileReceiver::class.componentName)
                 .setUUID(imported.uuid)
 
